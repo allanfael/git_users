@@ -6,8 +6,8 @@
     <application
       android:name=".MainApplication"
       android:label="@string/app_name"
-      android:icon="@mipmap/ic_git"
-      android:roundIcon="@mipmap/ic_git"
+      android:icon="@drawable/icon"
+      android:roundIcon="@drawable/icon"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
       <activity

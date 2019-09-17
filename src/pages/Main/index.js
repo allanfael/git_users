@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Keyboard, ActivityIndicator} from 'react-native';
+import {Keyboard, ActivityIndicator, ToastAndroid} from 'react-native';
 import PropTypes from 'prop-types';
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -30,7 +30,7 @@ export default class Main extends Component {
 
   static propTypes = {
     navigation: PropTypes.shape({
-      navigation: PropTypes.func,
+      navigate: PropTypes.func,
     }).isRequired,
   };
 
@@ -39,6 +39,7 @@ export default class Main extends Component {
     users: [],
     error: '',
     loading: false,
+    scroolToEnd: false,
   };
 
   async componentDidMount() {
@@ -58,8 +59,8 @@ export default class Main extends Component {
   }
 
   handleAddUser = async () => {
-    const {newUser, users, error} = this.state;
-    this.setState({loading: true});
+    const {newUser, users} = this.state;
+    this.setState({loading: true, scroolToEnd: true});
 
     await api
       .get(`/users/${newUser}`)
@@ -87,19 +88,29 @@ export default class Main extends Component {
             this.setState({error: 'Falha na Conexão'});
             break;
           default:
-            null;
+            return null;
         }
+        return null;
       });
     Keyboard.dismiss();
   };
 
-  deleteItemById = id => {
-    const filteredData = this.state.users.filter(item => item.id !== id);
-    this.setState({users: filteredData});
+  /**
+   *  deleteItemById = id => {
+   *const filteredData = this.state.users.filter(item => item.id !== id);
+    *this.setState({users: filteredData});
   };
+   */
 
   renderItemSeparator = () => {
     return <ItemSeparator />;
+  };
+
+  scroolTo = () => {
+    const {scroolToEnd} = this.state;
+    if (scroolToEnd) {
+      this.flatlist.scrollToEnd({animated: true});
+    }
   };
 
   handleNavigate = user => {
@@ -142,6 +153,7 @@ export default class Main extends Component {
         <List
           data={users}
           keyExtractor={user => user.login}
+          extraData={this.state}
           renderItem={({item}) => (
             <User>
               <Avatar source={{uri: item.avatar}} />
@@ -154,6 +166,14 @@ export default class Main extends Component {
             </User>
           )}
           ItemSeparatorComponent={this.renderItemSeparator}
+          ref={ref => (this.flatlist = ref)}
+          onContentSizeChange={this.scroolTo}
+
+          /**
+           *
+            onLayout={() => this.flatList.scrollToEnd({animated: true})}
+           }
+           */
         />
       </Container>
     );

@@ -29,26 +29,42 @@ export default class User extends Component {
   state = {
     repository: [],
     loading: false,
+    page: 1,
   };
 
-  async componentDidMount() {
+  componentDidMount() {
+    this.loadRepositories();
+  }
+
+  loadRepositories = async () => {
+    const {page, loading} = this.state;
+    if (loading) return;
+
     const {navigation} = this.props;
     const user = navigation.getParam('user');
 
     this.setState({loading: true});
 
     await api
-      .get(`/users/${user.login}/repos`)
+      .get(`/users/${user.login}/repos?q=page=${page}`)
       .then(res => {
+        console.tron.log(res.data);
         this.setState({
           repository: res.data,
           loading: false,
+          page: page + 1,
         });
       })
       .catch(() => {
         this.setState({loading: false});
       });
-  }
+  };
+
+  renderFooter = () => {
+    const {loading} = this.state;
+    if (!loading) return null;
+    return <Carregando />;
+  };
 
   handleNavigate = repo => {
     const {navigation} = this.props;
@@ -83,6 +99,10 @@ export default class User extends Component {
                 <Language>{item.language}</Language>
               </Item>
             )}
+            initialNumToRender={repository.length}
+            onEndReached={this.loadRepositories}
+            onEndReachedThreshold={0.05}
+            ListFooterComponent={this.renderFooter}
           />
         )}
       </Container>
